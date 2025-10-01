@@ -57,7 +57,7 @@ const setupTracking = (composeView) => {
     const subject = subjectField ? subjectField.value : '';
     
     // 2. Call the backend to get the tracking pixel
-    fetch('http://localhost:3000/api/v1/track', {
+    fetch('https://email-tracker-brown.vercel.app/api/v1/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

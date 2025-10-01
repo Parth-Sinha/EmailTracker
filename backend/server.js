@@ -63,7 +63,7 @@ app.post('/api/v1/track', async (req, res) => {
     console.log(`[+] Tracking enabled for email to ${recipient} | ID: ${trackingId}`);
 
     // Respond with the HTML for the tracking pixel
-    const pixelHtml = `<img src="http://localhost:3000/track/${trackingId}.png" width="1" height="1" border="0" alt="">`;
+    const pixelHtml = `<img src="https://email-tracker-brown.vercel.app/track/${trackingId}.png" width="1" height="1" border="0" alt="">`;
     res.json({ pixelHtml });
 
   } catch (error) {
