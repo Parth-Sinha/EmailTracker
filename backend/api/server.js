@@ -102,9 +102,4 @@ app.get('/track/:trackingId.png', async (req, res) => {
 });
 
 
-// --- Start Server ---
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
-
+export default app;
