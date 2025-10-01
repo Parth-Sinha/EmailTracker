@@ -10,13 +10,11 @@ app.use(express.json());
 app.use(cors());
 
 // --- UPDATED: Database Connection ---
-// The connection string is now securely loaded from the .env file
 const MONGO_URI = process.env.MONGO_URI;
 
-// A check to ensure the connection string is loaded
 if (!MONGO_URI) {
   console.error('FATAL ERROR: MONGO_URI is not defined in the .env file.');
-  process.exit(1); // Exit the application if the database connection string is missing
+  process.exit(1);
 }
 
 mongoose.connect(MONGO_URI)
@@ -26,7 +24,7 @@ mongoose.connect(MONGO_URI)
 // --- Mongoose Schema (No changes below this line) ---
 const emailSchema = new mongoose.Schema({
   trackingId: { type: String, required: true, unique: true },
-  userId: { type: String, required: true }, // In a real app, this would be a User ID from your auth system
+  userId: { type: String, required: true },
   recipient: String,
   subject: String,
   createdAt: { type: Date, default: Date.now },
@@ -41,8 +39,6 @@ const Email = mongoose.model('Email', emailSchema);
 
 
 // --- API Routes ---
-
-// 1. Endpoint to GENERATE a tracking pixel for a new email
 app.post('/api/v1/track', async (req, res) => {
   try {
     const { userId, recipient, subject } = req.body;
@@ -62,8 +58,14 @@ app.post('/api/v1/track', async (req, res) => {
 
     console.log(`[+] Tracking enabled for email to ${recipient} | ID: ${trackingId}`);
 
-    // Respond with the HTML for the tracking pixel
-    const pixelHtml = `<img src="https://email-tracker-brown.vercel.app/track/${trackingId}.png" width="1" height="1" border="0" alt="">`;
+    // --- THIS IS THE UPDATED PART ---
+    // Dynamically create the base URL. Use the VERCEL_URL if it exists (on Vercel),
+    // otherwise, fall back to localhost for local development.
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+
+    const pixelHtml = `<img src="${baseUrl}/track/${trackingId}.png" width="1" height="1" border="0" alt="">`;
     res.json({ pixelHtml });
 
   } catch (error) {
@@ -72,7 +74,6 @@ app.post('/api/v1/track', async (req, res) => {
   }
 });
 
-// 2. Endpoint to LOG an email open event (the tracking pixel itself)
 app.get('/track/:trackingId.png', async (req, res) => {
   try {
     const { trackingId } = req.params;
@@ -82,7 +83,6 @@ app.get('/track/:trackingId.png', async (req, res) => {
 
     console.log(`[!] Email opened! | ID: ${trackingId}`);
 
-    // Find the email and add the "open" event to its log
     await Email.updateOne(
       { trackingId },
       { $push: { opens: { ipAddress, userAgent } } }
@@ -91,7 +91,6 @@ app.get('/track/:trackingId.png', async (req, res) => {
   } catch (error) {
       console.error('Error logging open event:', error);
   } finally {
-    // IMPORTANT: Always respond with a 1x1 transparent pixel
     const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
     res.writeHead(200, {
       'Content-Type': 'image/gif',
@@ -101,5 +100,6 @@ app.get('/track/:trackingId.png', async (req, res) => {
   }
 });
 
-
+// Export the app for Vercel to use
 export default app;
+
