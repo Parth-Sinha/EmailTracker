@@ -1,0 +1,19 @@
+
+{
+  "manifest_version": 3,
+  "name": "Email Tracker",
+  "version": "1.0",
+  "description": "Tracks email opens and provides analytics.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
